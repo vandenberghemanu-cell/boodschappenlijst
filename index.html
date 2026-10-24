@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#176b4d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gezinslijst">
+<title>Ons boodschappenlijstje</title>
+<style>
+:root{--green:#176b4d;--green2:#e6f4ec;--ink:#20302a;--muted:#697871;--line:#e1e9e4;--bg:#f5f8f6;--white:#fff;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{background:var(--green);color:#fff;padding:22px 18px 20px;border-radius:0 0 24px 24px}
+.wrap{max-width:720px;margin:auto}header .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.12em;opacity:.82}h1{font-size:27px;margin:6px 0 5px}header p{margin:0;opacity:.9;font-size:14px}
+main{padding:16px;max-width:720px;margin:auto}.panel{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:14px;box-shadow:0 2px 8px #173b2b08}
+label{font-size:13px;font-weight:650;display:block;margin-bottom:7px}.entry{display:flex;gap:8px}.entry input{flex:1;min-width:0}
+input,select,button{font:inherit;border-radius:11px;border:1px solid #d5e0d9;padding:12px;background:#fff;color:var(--ink)}input:focus,select:focus{outline:2px solid #8fc9aa;outline-offset:1px}
+button{cursor:pointer;font-weight:650}.primary{background:var(--green);color:#fff;border-color:var(--green)}button:disabled{opacity:.5;cursor:default}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.controls label{margin:0}.controls select{width:100%;margin-top:6px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 12px}.toolbar h2{font-size:18px;margin:0}.count{font-size:13px;color:var(--muted)}
+.item{display:flex;align-items:center;gap:11px;padding:12px 2px;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0}.item input[type=checkbox]{width:21px;height:21px;accent-color:var(--green);flex:0 0 auto}.itemname{flex:1;min-width:0;overflow-wrap:anywhere}.item.checked .itemname{text-decoration:line-through;color:#87918c}.cat{font-size:11px;color:var(--muted);background:#f0f4f1;padding:4px 7px;border-radius:8px;white-space:nowrap}.iconbtn{padding:7px 9px;background:transparent;border-color:transparent;color:var(--muted)}.sectiontitle{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 5px}.empty{color:var(--muted);font-size:14px;padding:14px 2px}.smallbtn{font-size:13px;padding:8px 10px}.status{font-size:12px;color:var(--muted);margin-top:10px;display:flex;gap:7px;align-items:center}.dot{width:8px;height:8px;border-radius:50%;background:#b7c2bc}.dot.ok{background:#2e9b68}.dot.bad{background:#c43832}.savedgrid{display:flex;flex-wrap:wrap;gap:8px}.saved{display:flex;gap:6px;align-items:center;background:var(--green2);border:1px solid #cde7d8;color:#15583e;padding:9px 11px;border-radius:999px;font-size:14px}.saved span{font-size:11px;opacity:.8}.saved .add{font-weight:800;border:0;background:transparent;color:inherit;padding:0 2px}.saved .del{border:0;background:transparent;color:inherit;padding:0 0 0 3px}.footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 0 24px}.notice{background:#fff8e6;border:1px solid #f2dfaa;color:#694d0b;border-radius:12px;padding:12px;font-size:13px;line-height:1.45;margin-bottom:14px}
+@media(min-width:600px){main{padding:22px}.panel{padding:18px}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="eyebrow">Voor ons gezin</div><h1>🛒 Ons boodschappenlijstje</h1><p>Eén gedeelde lijst voor drie personen</p></div></header>
+<main>
+<div id="setupNotice" class="notice" hidden><strong>Eenmalige installatie nodig.</strong><br>De appbestanden zijn klaar, maar gedeelde synchronisatie werkt pas nadat Firebase is ingesteld. Volg de stappen in LEESMIJ.txt en vul daarna de Firebase-configuratie in dit bestand in.</div>
+<section class="panel">
+<label for="itemInput">Wat hebben we nodig?</label>
+<div class="entry"><input id="itemInput" placeholder="Bijv. melk, bananen…" autocomplete="off"><button id="addBtn" class="primary">Toevoegen</button></div>
+<div class="controls">
+<label>Categorie<select id="category"><option>Groenten en fruit</option><option>Zuivel en eieren</option><option>Brood en bakkerij</option><option>Vlees en vis</option><option>Dranken</option><option>Voorraadkast</option><option>Diepvries</option><option>Huishouden</option><option>Verzorging</option><option>Overig</option></select></label>
+<label>Toegevoegd door<select id="person"><option>Gezin</option><option>Persoon 1</option><option>Persoon 2</option><option>Persoon 3</option></select></label>
+</div>
+<div class="status"><span id="dot" class="dot"></span><span id="statusText">Lokale testmodus — gedeelde opslag nog niet ingesteld</span></div>
+</section>
+<section class="panel">
+<div class="toolbar"><h2>Op het lijstje</h2><span id="count" class="count">0 artikelen</span></div>
+<div id="items"><div class="empty">Je lijst is nog leeg. Voeg hierboven iets toe.</div></div>
+<div style="display:flex;justify-content:flex-end;margin-top:10px"><button id="clearChecked" class="smallbtn">Verwijder afgevinkte</button></div>
+</section>
+<section class="panel">
+<div class="toolbar"><h2>Vaste boodschappen</h2><span class="count">Snel toevoegen</span></div>
+<div class="savedgrid" id="saved"></div>
+<div style="display:flex;gap:8px;margin-top:13px"><input id="savedInput" placeholder="Nieuwe vaste boodschap…" style="flex:1;min-width:0"><button id="saveBtn" class="smallbtn">Bewaar</button></div>
+<p class="count" style="line-height:1.45;margin-bottom:0">Tik op een vaste boodschap om die aan de lijst toe te voegen. Houd het lijstje kort en overzichtelijk.</p>
+</section>
+<div class="footer">Gezinslijst · Open deze pagina op elk toestel via dezelfde link.</div>
+</main>
+<script type="module">
+/*
+  Eenmalig instellen:
+  1. Maak een Firebase-project en zet Authentication > Anonymous aan.
+  2. Maak Realtime Database aan.
+  3. Vul de firebaseConfig hieronder in.
+  4. Gebruik de regels uit LEESMIJ.txt.
+*/
+const firebaseConfig = null; // VERVANG null door je Firebase-configuratieobject.
+const $ = id => document.getElementById(id);
+const categories = ["Groenten en fruit","Zuivel en eieren","Brood en bakkerij","Vlees en vis","Dranken","Voorraadkast","Diepvries","Huishouden","Verzorging","Overig"];
+let items = [];
+let saved = ["Melk","Brood","Eieren","Bananen","Koffie","Toiletpapier","Afwasmiddel","Kattenvoer"];
+let dbApi = null, connected = false, localMode = true, stateRef = null, stateListener = null;
+const makeId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())+Math.random().toString(16).slice(2));
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function setStatus(msg,kind=""){$("statusText").textContent=msg;$("dot").className="dot "+kind;}
+function persistLocal(){try{localStorage.setItem("familyShoppingItems",JSON.stringify(items));localStorage.setItem("familyShoppingSaved",JSON.stringify(saved));}catch{}}
+function render(){
+ const list=$("items"); const pending=items.filter(x=>!x.checked).sort((a,b)=>a.category.localeCompare(b.category)||a.name.localeCompare(b.name)); const done=items.filter(x=>x.checked);
+ $("count").textContent=`${pending.length} te kopen${done.length?` · ${done.length} afgevinkt`:""}`;
+ if(!items.length){list.innerHTML='<div class="empty">Je lijst is nog leeg. Voeg hierboven iets toe.</div>';}
+ else {
+   list.innerHTML="";
+   for(const item of [...pending,...done]){
+    const row=document.createElement("div");row.className="item"+(item.checked?" checked":"");
+    row.innerHTML=`<input type="checkbox" aria-label="Afvinken" ${item.checked?"checked":""}><div class="itemname">${escapeHtml(item.name)}<div style="font-size:11px;color:#87918c;margin-top:3px">${escapeHtml(item.person||"Gezin")}</div></div><span class="cat">${escapeHtml(item.category||"Overig")}</span><button class="iconbtn" aria-label="Verwijderen" title="Verwijderen">✕</button>`;
+    row.querySelector('input').addEventListener("change",()=>updateItem(item.id,{checked:!item.checked}));
+    row.querySelector('button').addEventListener("click",()=>removeItem(item.id));
+    list.appendChild(row);
+   }
+ }
+ const savedEl=$("saved");savedEl.innerHTML="";
+ saved.forEach((name,i)=>{const b=document.createElement("div");b.className="saved";b.innerHTML=`<button class="add" aria-label="Toevoegen">${escapeHtml(name)}</button><button class="del" aria-label="Verwijder vaste boodschap" title="Verwijder vaste boodschap">×</button>`;b.querySelector(".add").addEventListener("click",()=>addItem(name,"Overig"));b.querySelector(".del").addEventListener("click",()=>{saved.splice(i,1);writeState();});savedEl.appendChild(b);});
+ persistLocal();
+}
+function writeState(){
+ if(dbApi && stateRef){dbApi.set(stateRef,{items,saved,updatedAt:Date.now()}).catch(e=>setStatus("Synchronisatie mislukt: "+e.message,"bad"));}
+ else {persistLocal();}
+ render();
+}
+function addItem(name,category=$("category").value){
+ name=name.trim();if(!name)return;
+ const exists=items.some(x=>x.name.toLowerCase()===name.toLowerCase()&&!x.checked);
+ if(exists){$("itemInput").value="";return;}
+ items.push({id:makeId(),name,category,person:$("person").value,checked:false,createdAt:Date.now()});
+ $("itemInput").value="";writeState();
+}
+function updateItem(id,changes){items=items.map(x=>x.id===id?{...x,...changes}:x);writeState();}
+function removeItem(id){items=items.filter(x=>x.id!==id);writeState();}
+$("addBtn").addEventListener("click",()=>addItem($("itemInput").value));
+$("itemInput").addEventListener("keydown",e=>{if(e.key==="Enter")addItem($("itemInput").value);});
+$("saveBtn").addEventListener("click",()=>{const v=$("savedInput").value.trim();if(v&&!saved.some(x=>x.toLowerCase()===v.toLowerCase()))saved.push(v);$("savedInput").value="";writeState();});
+$("savedInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("saveBtn").click();});
+$("clearChecked").addEventListener("click",()=>{if(items.some(x=>x.checked)&&confirm("Alle afgevinkte boodschappen verwijderen?")){items=items.filter(x=>!x.checked);writeState();}});
+try{items=JSON.parse(localStorage.getItem("familyShoppingItems")||"[]");saved=JSON.parse(localStorage.getItem("familyShoppingSaved")||JSON.stringify(saved));}catch{}
+render();
+if(!firebaseConfig){
+ $("setupNotice").hidden=false;
+ setStatus("Lokale testmodus — nog niet gedeeld","");
+} else {
+ try {
+  const {initializeApp}=await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js");
+  const {getAuth,signInAnonymously}=await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js");
+  const {getDatabase,ref,onValue,set}=await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js");
+  const app=initializeApp(firebaseConfig);const auth=getAuth(app);await signInAnonymously(auth);
+  const db=getDatabase(app);stateRef=ref(db,"familyShoppingList");dbApi={set};
+  onValue(stateRef,snap=>{const v=snap.val();if(v){items=Array.isArray(v.items)?v.items:Object.values(v.items||{});saved=Array.isArray(v.saved)?v.saved:Object.values(v.saved||{});}else{items=[];}connected=true;$("setupNotice").hidden=true;setStatus("Gedeelde lijst is verbonden","ok");render();},err=>setStatus("Kan niet synchroniseren: "+err.message,"bad"));
+ }catch(e){setStatus("Verbinding mislukt. Controleer Firebase-instellingen.","bad");console.error(e);}
+}
+</script>
+</body>
+</html>
